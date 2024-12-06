@@ -1,0 +1,5 @@
+venv/
+output_files/
+trained_models/
+__pychache__/
+.idea/

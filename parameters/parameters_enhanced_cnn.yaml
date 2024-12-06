@@ -1,0 +1,85 @@
+# Name of the run / output folder
+run_name: "ECNN_SSCI"
+
+########## TRAINING PARAMETERS ##########
+training_mode: 'sup'  # 'custom_unsup', 'sup', 'ae', 'max_ampl', 'sup_using_gan', 'mean'
+train_model: True
+test_model: True
+test_combined_hw: True
+
+# If no new model is trained, path of old model needs to be given here
+load_model_path: 'ECNN_SSCI/EQ_CNN_1D.pt'
+
+# Number of training iterations
+training_iters: 10000 #5000 #  20000 #10000 #15000 # 15000 100000 #50000
+# Train multiple models to check stability
+training_runs: 1
+# Learning rate
+learning_rate: 0.0001 # 0.005
+# Set optimizer of generator, RMSprop seems to work best for KL-Div
+optimize_func: "Adam"  # "Adam", "Adadelta", "Adamax", "ASGD", "RMSprop"
+# Learning rate scheduler milestones
+lrs_milestones: None
+#  - 5000
+#  - 100000
+#  - 15000
+#  - 20000
+lrs_gamma: 0.2 # 1.5s
+
+########## DATASET PARAMETERS ##########
+# Path to dataset in parquet format: MODIFY THIS PATH TO POINT TO YOUR CUSTOM DATASET
+dataset_path: "labeled_rawdata_removed_single_class_pumps.parquet"
+# Set value of gt class for normal and abnormal samples
+value_normal_class: 0 # -10
+value_anormal_class: 1 # 10
+# Equally distribute normal and abnormal samples in training set
+equally_distributed_train_data: False
+# Remove specific pump from training set and use this pump for testing
+test_pump_generalization: True
+# This pump will be removed from training set
+pump_eval_idx: 0 # [0, 1, 2, 3, 12, 27, 40, 44, 46, 55, 56, 58, 70, 74, 77, 86, 91, 97, 102, 105, 106]
+subtract_mean_from_input: False
+do_remove_pumps_with_only_one_class: True
+add_input_fac_fpr_threshold: 0.1
+t_fpr_threshold: 0.1
+
+
+########## MODEL PARAMETERS ##########
+# Type of neural network model
+model_type: "CNN_1D"     # "CNN_1D"
+additional_input: "mean" # "max_ampl", "none"
+channels_in: 6
+# For CNN_1D: Number of convolutional layers, For CNN_1D_AE: Number of convolutional layers in encoder and decoder respectively, for LSTM number of lstm layers
+depth: 10 #10 #3
+# Set number of channels between convolutional layers
+intermediate_channels: 10 #10
+batch_size: 100 # 10 # 1, 256
+# Number of values in input sequence
+input_symbols: 800
+# Kernel size of convolutional layers
+kernel_size: 23 #23 # 21
+# Calc multiple outputs in one run, --> increase stride of fist layer and channels of last layer
+multi_outs: 1
+# Only for CNN_1D: type of last layer, "global_average" or "fully_connected"
+last_layer_type: "global_average"
+# Only for CNN_1D_AE: number of channels of latent space
+inner_channels: 5
+# Only for CNN_1D_AE: Use pooling layers in encoder and decoder
+use_pooling: True
+export_model_as_onnx: False
+
+
+########## SWEEP PARAMETERS ##########
+#sweep: None
+#sweep: { # set to None or comment out for no parameter sweep
+#  sweep_name:                   "SIPSENSIN_ECNN_HW04_test",
+#  reuse_model_initialization:   True,  # if True, same model initialization is used throughout all parameter configurations
+#  #parameter:                       ["kernel_size"],
+#  #values:                         [3, 9, 15, 21, 27, 33, 39, 45, 51, 57, 63, 69]
+#  #parameter:                       ["intermediate_channels"],
+#  #values:                         [[1, 2, 3, 4, 5, 7, 9, 11, 13, 15, 20, 25]]
+#  #parameter:                      ["depth", "kernel_size", "intermediate_channels"],
+#  #values:                         [[4, 6, 8, 10], [11, 15, 19, 23], [5, 10, 15, 20]]
+#  parameter:                       ["pump_eval_idx"],
+#  values:                          [[0, 1, 2, 3, 12, 27, 40, 44, 46, 55, 56, 58, 70, 74, 77, 86, 91, 97, 102, 105, 106]] # [[1, 2]] #[["all"]]
+#}

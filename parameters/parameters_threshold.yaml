@@ -1,0 +1,80 @@
+# Name of the run / output folder
+run_name: "Threshold_SSCI"
+
+########## TRAINING PARAMETERS ##########
+training_mode: 'mean'  #
+train_model: True
+test_model: True
+
+# If no new model is trained, path of old model needs to be given here
+load_model_path: 'Threshold_SSCI/EQ_None.pt'
+
+# Number of training iterations
+training_iters: 1000 #  20000 #10000 #15000 # 15000 100000 #50000
+# Train multiple models to check stability
+training_runs: 1
+# Learning rate
+learning_rate: 0.0002 # 0.005
+# Set optimizer of generator, RMSprop seems to work best for KL-Div
+optimize_func: "Adam"  # "Adam", "Adadelta", "Adamax", "ASGD", "RMSprop"
+# Learning rate scheduler milestones
+lrs_milestones: None
+#  - 10000
+#  - 20000
+#  - 30000
+#  - 40000
+lrs_gamma: 0.1 # 1.5s
+# Only for ae, used to calc threshold between normal and abnormal samples like: mean(normal_loss) + threshold_std_fac * std(normal_loss)
+threshold_std_fac: 2
+# Only for ae and max_ampl, always use optimal threshold for evaluation
+use_optimal_threshold: True
+export_model_as_onnx: False
+
+
+########## DATASET PARAMETERS ##########
+# Path to dataset in parquet format: MODIFY THIS PATH TO POINT TO YOUR CUSTOM DATASET
+dataset_path: "labeled_rawdata_removed_single_class_pumps.parquet"
+# Set value of gt class for normal and abnormal samples
+value_normal_class: 0 # -10
+value_anormal_class: 1 # 10
+# Equally distribute normal and anormal samples in training set
+equally_distributed_train_data: False
+# Remove specific pump from training set and use this pump for testing
+test_pump_generalization: True
+# This pump will be removed from training set
+pump_eval_idx: 0
+normalize_inputs: True
+used_fixed_mean_std: True
+sample_wise_normalization: False
+apply_low_pass_filter: False
+# Only for max_ampl
+max_dim: 'y'
+subtract_mean_from_input: False
+do_remove_pumps_with_only_one_class: True
+t_fpr_threshold: 0.1
+
+
+########## MODEL PARAMETERS ##########
+# Type of neural network model
+model_type: "None"     # "CNN_1D", "CNN_1D_AE", "LSTM_1D_AE", "CNN_1D_Additional_Input"
+additional_input: "None" # "max_ampl", "None"
+batch_size: 1 # 10 # 1, 256
+# Number of values in input sequence
+input_symbols: 800
+
+
+########## SWEEP PARAMETERS ##########
+#sweep: None
+#sweep: { # set to None or comment out for no parameter sweep
+#  sweep_name:                   "SIPSENSIN_ECNN_HW04_test",
+#  reuse_model_initialization:   True,  # if True, same model initialization is used throughout all parameter configurations
+#  #parameter:                       ["kernel_size"],
+#  #values:                         [3, 9, 15, 21, 27, 33, 39, 45, 51, 57, 63, 69]
+#  #parameter:                       ["intermediate_channels"],
+#  #values:                         [[1, 2, 3, 4, 5, 7, 9, 11, 13, 15, 20, 25]]
+#  #parameter:                      ["depth", "kernel_size", "intermediate_channels"],
+#  #values:                         [[4, 6, 8, 10], [11, 15, 19, 23], [5, 10, 15, 20]]
+#  parameter:                       ["pump_eval_idx"],
+#  values:                          [[0, 1, 2, 3, 12, 27, 40, 44, 46, 55, 56, 58, 70, 74, 77, 86, 91, 97, 102, 105, 106]] # [[1, 2]] #[["all"]]
+#}
+
