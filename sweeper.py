@@ -75,8 +75,7 @@ class Sweeper:
 
         # If we do not sweep over different eval pumps, we can use same dataset for all sweeps
         if "pump_eval_idx" not in self.sweep["parameter"]:
-            self.dataset = CustomDataset(params["input_x_data_path"], params["input_y_data_path"], params["input_z_data_path"],
-                                         params["gt_data_path"],
+            self.dataset = CustomDataset(params["dataset_path"],
                                          device=device,
                                          training_mode=params["training_mode"],
                                          test_pump_generalization=params["test_pump_generalization"],
@@ -86,10 +85,7 @@ class Sweeper:
                                          do_remove_pumps_with_only_one_class=params["do_remove_pumps_with_only_one_class"])
         else:
             self.CustomDataset_parameterized = partial(CustomDataset,
-                                                       input_x_data_path=params["input_x_data_path"],
-                                                       input_y_data_path=params["input_y_data_path"],
-                                                       input_z_data_path=params["input_z_data_path"],
-                                                       gt_data_path=params["gt_data_path"],
+                                                       params["dataset_path"],
                                                        device=device,
                                                        training_mode=params["training_mode"],
                                                        test_pump_generalization=params["test_pump_generalization"],
@@ -189,9 +185,6 @@ class Sweeper:
             print("#################### Parameter configuration {}/{}: {} ####################".format(i+1, self.total_num_model_configs, conifg_str))
 
             test_accuracy_current = []
-            averag_num_bits_current = []
-            average_num_bits_iterations_current = []
-            average_num_bits_per_layer_current = []
 
             for j in range(self.default_params['training_runs']):
                 print("#################### Starting training run number {}/{} with parameter set {}/{}  ####################".format(j+1, self.default_params['training_runs'], i+1, self.total_num_model_configs))
@@ -206,34 +199,23 @@ class Sweeper:
                 trainer_ret = trainer.train()
                 validation_accuracies_current_sweep.append(trainer_ret[1])
 
-                if self.default_params["quantize"]:
-                    average_num_bits_iterations_current.append(trainer_ret[3])
-                    averag_num_bits_current.append(trainer_ret[0].get_average_num_bits_model())
-                    average_num_bits_per_layer_current.append(trainer_ret[0].get_average_num_bits_per_layer())
+                tester = Tester(self.default_params, trainer, self.device, file_prefix=self.default_params["model_type"])
+                test_results = tester.test()
 
-                    tester = Tester(self.default_params, trainer, self.device, file_prefix=self.default_params["model_type"])
-                    test_results = tester.test()
+                nn_has_adjustable_hyperparam = trainer.additional_input == "mean" or trainer.additional_input == "max" or trainer.subtract_mean_from_input is True
+                threshold_alg_is_used = trainer.training_mode == "mean" or trainer.training_mode == "max_ampl"
 
-                    nn_has_adjustable_hyperparam = trainer.additional_input == "mean" or trainer.additional_input == "max" or trainer.subtract_mean_from_input is True
-                    threshold_alg_is_used = trainer.training_mode == "mean" or trainer.training_mode == "max_ampl"
-
-                    if nn_has_adjustable_hyperparam:
-                        test_accuracy_current =  test_results["add_input_fac_best"]["acc"]
-                    elif threshold_alg_is_used:
-                        test_accuracy_current =  test_results["t_best"]["acc"]
-                    else:
-                        test_accuracy_current = test_results["acc"]
+                if nn_has_adjustable_hyperparam:
+                    test_accuracy_current =  test_results["add_input_fac_best"]["acc"]
+                elif threshold_alg_is_used:
+                    test_accuracy_current =  test_results["t_best"]["acc"]
+                else:
+                    test_accuracy_current = test_results["acc"]
 
                 trainer.freeze_state(dir=self.default_params["output_model_path"], filename=current_filename)
                 self.children[i, j] = model_file_out_path
 
-            if self.default_params["quantize"]:
-
-                test_accuracies.append(test_accuracy_current)
-                averag_num_bits.append(averag_num_bits_current)
-                average_num_bits_iterations.append(average_num_bits_iterations_current)
-                average_num_bits_per_layer.append(average_num_bits_per_layer_current)
-
+            test_accuracies.append(test_accuracy_current)
             validation_accuracies.append(validation_accuracies_current_sweep)
 
 
@@ -246,14 +228,6 @@ class Sweeper:
             'param_external': utils.create_dict_structure(self.all_models_shape),
             'children': self.children
         }
-
-        if save_results:
-            # Save validation bers
-            if len(self.sweep['parameter']) == 1:
-                if self.default_params["quantize"]:
-                    vis.plot_average_num_bits_sweep(self.default_params, average_num_bits_iterations, self.default_params["output_files_path"])
-                    vis.plot_acc_vs_bits_sweep(self.default_params, test_accuracies, averag_num_bits, self.default_params["output_files_path"])
-                    vis.write_average_num_bits_per_layer(self.default_params, average_num_bits_per_layer, self.default_params["output_files_path"])
 
         return
 

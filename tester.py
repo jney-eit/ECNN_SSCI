@@ -289,12 +289,12 @@ class Tester():
                     print('selected pumps acc: {:.5f} | tp_selected_pump: {} | fp_selected_pump: {} | tn_selected_pump: {} | fn_selected_pump: {}'.format(sp_eval_acc, tp, fp, tn, fn), flush=True)
 
                     # Init results dict with all values
-                    results = {"eval_acc": sp_eval_acc, "tp": tp, "fp": fp, "tn": tn, "fn": fn}
+                    results = {"acc": sp_eval_acc, "tp": tp, "fp": fp, "tn": tn, "fn": fn}
         else:
             eval_acc, tp, fp, tn, fn = self.trainer.evaluate(self.trainer.eval_loader, self.trainer.dataset.classes.to(self.device), max_iterations=40)[0:5]
             print('eval acc: {:.5f} | tp: {} | fp: {} | tn: {} | fn: {}'.format(eval_acc, tp, fp, tn, fn), flush=True)
 
-            results = {"eval_acc": eval_acc, "tp": tp, "fp": fp, "tn": tn, "fn": fn}
+            results = {"acc": eval_acc, "tp": tp, "fp": fp, "tn": tn, "fn": fn}
 
         return results
 

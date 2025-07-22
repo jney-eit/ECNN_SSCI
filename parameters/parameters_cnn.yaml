@@ -36,7 +36,11 @@ use_optimal_threshold: True
 
 ########## DATASET PARAMETERS ##########
 # Path to dataset in parquet format: MODIFY THIS PATH TO POINT TO YOUR CUSTOM DATASET
-dataset_path: "labeled_rawdata_removed_single_class_pumps.parquet"
+dataset_path: "/HDD/ney/SIPSENSIN_labeled_data/labeled_rawdata_removed_single_class_pumps.parquet"
+#input_x_data_path: "/HDD/ney/SIPSENSIN_labeled_data/labeled_rawdata_removed_single_class_pumps.parquet"
+#input_y_data_path: "/HDD/ney/SIPSENSIN_labeled_data/labeled_rawdata_removed_single_class_pumps.parquet"
+#input_z_data_path: "/HDD/ney/SIPSENSIN_labeled_data/labeled_rawdata_removed_single_class_pumps.parquet"
+#gt_data_path: "/HDD/ney/SIPSENSIN_labeled_data/labeled_rawdata_removed_single_class_pumps.parquet"
 # Set value of gt class for normal and abnormal samples
 value_normal_class: 0 # -10
 value_anormal_class: 1 # 10
@@ -45,7 +49,7 @@ equally_distributed_train_data: False
 # Remove specific pump from training set and use this pump for testing
 test_pump_generalization: True
 # This pump will be removed from training set
-pump_eval_idx: 0
+pump_eval_idx: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 86, 91, 97, 102, 105, 106] #0
 normalize_inputs: True
 used_fixed_mean_std: True
 sample_wise_normalization: False
@@ -84,17 +88,17 @@ export_model_as_onnx: False
 
 ########## SWEEP PARAMETERS ##########
 #sweep: None
-#sweep: { # set to None or comment out for no parameter sweep
-#  sweep_name:                   "SIPSENSIN_ECNN_HW04_test",
-#  reuse_model_initialization:   True,  # if True, same model initialization is used throughout all parameter configurations
-#  #parameter:                       ["kernel_size"],
-#  #values:                         [3, 9, 15, 21, 27, 33, 39, 45, 51, 57, 63, 69]
-#  #parameter:                       ["intermediate_channels"],
-#  #values:                         [[1, 2, 3, 4, 5, 7, 9, 11, 13, 15, 20, 25]]
-#  #parameter:                      ["depth", "kernel_size", "intermediate_channels"],
-#  #values:                         [[4, 6, 8, 10], [11, 15, 19, 23], [5, 10, 15, 20]]
-#  parameter:                       ["pump_eval_idx"],
-#  values:                          [[0, 1, 2, 3, 12, 27, 40, 44, 46, 55, 56, 58, 70, 74, 77, 86, 91, 97, 102, 105, 106]] # [[1, 2]] #[["all"]]
-#}
+sweep: { # set to None or comment out for no parameter sweep
+  sweep_name:                   "SIPSENSIN_CNN_short_sweep",
+  reuse_model_initialization:   True,  # if True, same model initialization is used throughout all parameter configurations
+  #parameter:                       ["kernel_size"],
+  #values:                         [3, 9, 15, 21, 27, 33, 39, 45, 51, 57, 63, 69]
+  #parameter:                       ["intermediate_channels"],
+  #values:                         [[1, 2, 3, 4, 5, 7, 9, 11, 13, 15, 20, 25]]
+  #parameter:                      ["depth", "kernel_size", "intermediate_channels"],
+  #values:                         [[4, 6, 8, 10], [11, 15, 19, 23], [5, 10, 15, 20]]
+  parameter:                       ["pump_eval_idx"],
+  values:                          [[0, 1, 2, 3]] # [[1, 2]] #[["all"]]
+}
 
 
